@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+  <title>Meme Studio</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <h1>Meme Studio</h1>
+      <p class="subtitle">Create a meme or edited image, then share it to chat</p>
+    </header>
+
+    <main class="workspace">
+      <section class="canvas-panel">
+        <div class="canvas-wrap">
+          <canvas id="canvas" width="640" height="480"></canvas>
+          <div id="dropHint" class="drop-hint">
+            <p>Drag &amp; drop an image here, or</p>
+            <button id="uploadBtn" type="button">Choose Image</button>
+          </div>
+        </div>
+        <input id="fileInput" type="file" accept="image/*" hidden />
+
+        <div class="canvas-actions">
+          <button id="addTextBtn" type="button" class="btn">+ Text</button>
+          <button id="presetMemeBtn" type="button" class="btn">Top/Bottom Meme</button>
+          <button id="deleteLayerBtn" type="button" class="btn btn-danger" disabled>Delete Text</button>
+          <button id="clearImageBtn" type="button" class="btn btn-ghost">Remove Image</button>
+        </div>
+      </section>
+
+      <section class="controls-panel">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="text">Text</button>
+          <button class="tab-btn" data-tab="filters">Filters</button>
+          <button class="tab-btn" data-tab="share">Message &amp; Share</button>
+        </div>
+
+        <div class="tab-content" data-tab-content="text">
+          <p id="noLayerMsg" class="hint">Select a text layer on the canvas, or click "+ Text" to add one.</p>
+          <div id="layerControls" class="layer-controls" hidden>
+            <label>Text
+              <textarea id="layerText" rows="2"></textarea>
+            </label>
+            <label>Font
+              <select id="layerFont">
+                <option value="Impact, sans-serif">Impact</option>
+                <option value="Arial, sans-serif">Arial</option>
+                <option value="'Comic Sans MS', cursive">Comic Sans</option>
+                <option value="'Times New Roman', serif">Times New Roman</option>
+                <option value="'Courier New', monospace">Courier New</option>
+                <option value="Verdana, sans-serif">Verdana</option>
+              </select>
+            </label>
+            <label>Size
+              <input id="layerSize" type="range" min="12" max="120" value="48" />
+            </label>
+            <div class="color-row">
+              <label>Fill
+                <input id="layerColor" type="color" value="#ffffff" />
+              </label>
+              <label>Outline
+                <input id="layerStroke" type="color" value="#000000" />
+              </label>
+              <label class="checkbox-label">
+                <input id="layerBold" type="checkbox" />
+                Bold
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-content" data-tab-content="filters" hidden>
+          <label>Brightness
+            <input id="fBrightness" type="range" min="0" max="200" value="100" />
+          </label>
+          <label>Contrast
+            <input id="fContrast" type="range" min="0" max="200" value="100" />
+          </label>
+          <label>Saturation
+            <input id="fSaturate" type="range" min="0" max="200" value="100" />
+          </label>
+          <label>Grayscale
+            <input id="fGrayscale" type="range" min="0" max="100" value="0" />
+          </label>
+          <label>Sepia
+            <input id="fSepia" type="range" min="0" max="100" value="0" />
+          </label>
+          <div class="filter-actions">
+            <button id="rotateLeftBtn" type="button" class="btn">Rotate ↺</button>
+            <button id="rotateRightBtn" type="button" class="btn">Rotate ↻</button>
+            <button id="flipHBtn" type="button" class="btn">Flip H</button>
+            <button id="flipVBtn" type="button" class="btn">Flip V</button>
+            <button id="resetFiltersBtn" type="button" class="btn btn-ghost">Reset</button>
+          </div>
+        </div>
+
+        <div class="tab-content" data-tab-content="share" hidden>
+          <label>Message
+            <textarea id="messageText" rows="3" placeholder="Say something..."></textarea>
+          </label>
+
+          <div class="attachments-section">
+            <div class="attachments-header">
+              <span>Attachments (<span id="attachCount">0</span>/5)</span>
+              <button id="addAttachmentBtn" type="button" class="btn btn-small">Add current image</button>
+            </div>
+            <div id="attachmentsTray" class="attachments-tray"></div>
+          </div>
+
+          <div class="share-actions">
+            <button id="downloadBtn" type="button" class="btn">Download Image</button>
+            <button id="shareBtn" type="button" class="btn btn-primary">Share to Chat</button>
+          </div>
+          <p id="statusMsg" class="status" role="status"></p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

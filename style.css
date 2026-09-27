@@ -1,0 +1,289 @@
+:root {
+  --bg: #0f172a;
+  --panel: #1e293b;
+  --panel-light: #293548;
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+  --text: #f1f5f9;
+  --text-dim: #94a3b8;
+  --danger: #ef4444;
+  --border: #334155;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.app-header h1 {
+  margin: 0 0 4px;
+  font-size: 22px;
+}
+
+.subtitle {
+  margin: 0 0 16px;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+.workspace {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.canvas-panel {
+  flex: 1 1 480px;
+  min-width: 300px;
+}
+
+.canvas-wrap {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+canvas {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  touch-action: none;
+  cursor: default;
+}
+
+.drop-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(15, 23, 42, 0.55);
+  pointer-events: none;
+}
+
+.drop-hint.hidden {
+  display: none;
+}
+
+.drop-hint p {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+.drop-hint button {
+  pointer-events: auto;
+}
+
+.canvas-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.controls-panel {
+  flex: 1 1 300px;
+  min-width: 280px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  padding: 8px 6px;
+  font-size: 12px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.tab-btn.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+.tab-content label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+
+.tab-content input[type="range"] {
+  width: 100%;
+}
+
+.tab-content textarea,
+.tab-content select,
+.tab-content input[type="text"] {
+  width: 100%;
+  margin-top: 4px;
+  background: var(--panel-light);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-family: inherit;
+  font-size: 13px;
+  resize: vertical;
+}
+
+.color-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-direction: row;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.btn {
+  background: var(--panel-light);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.btn:hover {
+  border-color: var(--accent);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.btn-danger {
+  color: var(--danger);
+}
+
+.btn-ghost {
+  background: transparent;
+}
+
+.btn-small {
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+.attachments-section {
+  margin: 16px 0;
+}
+
+.attachments-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.attachments-tray {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-height: 60px;
+}
+
+.attachment-thumb {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.attachment-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.attachment-thumb button {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: rgba(15, 23, 42, 0.8);
+  color: var(--text);
+  border: none;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.share-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.status {
+  font-size: 12px;
+  color: var(--accent);
+  min-height: 16px;
+}
