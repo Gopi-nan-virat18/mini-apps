@@ -417,40 +417,38 @@
     return "*";
   }
 
+  const MINIAPP_SOURCE = "arattai-custom-miniapp";
+
+  function postToHost(payload) {
+    window.parent.postMessage({ source: MINIAPP_SOURCE, type: "send_message", ...payload }, getParentOrigin());
+  }
+
   document.getElementById("shareBtn").addEventListener("click", () => {
     const text = document.getElementById("messageText").value.trim();
     if (!text && attachments.length === 0) {
       setStatus("Add a message or at least one attachment before sharing.", true);
       return;
     }
-
-    const message = {
-      source: "arattai-mini-app",
-      type: "SHARE_TO_CHAT",
-      version: 1,
-      payload: {
-        text,
-        attachments: attachments.map(({ name, mimeType, dataUrl }) => ({ name, mimeType, dataUrl })),
-      },
-    };
-
-    const targetOrigin = getParentOrigin();
     if (window.parent === window) {
       setStatus("Not running inside a host app; nothing to share to.", true);
       return;
     }
-    window.parent.postMessage(message, targetOrigin);
-    setStatus("Shared to chat.");
-  });
 
-  // Optional: listen for acknowledgements from the host, validating the origin.
-  window.addEventListener("message", (event) => {
-    const expectedOrigin = getParentOrigin();
-    if (expectedOrigin !== "*" && event.origin !== expectedOrigin) return;
-    const data = event.data;
-    if (data && data.source === "arattai-host" && data.type === "SHARE_ACK") {
-      setStatus("Host confirmed message delivery.");
+    if (text) {
+      postToHost({ format: "text", message: text });
     }
+
+    if (attachments.length === 1) {
+      const { name, mimeType, dataUrl } = attachments[0];
+      postToHost({ format: "attachment", message: { name, mimeType, dataUrl } });
+    } else if (attachments.length > 1) {
+      postToHost({
+        format: "attachment",
+        message: attachments.map(({ name, mimeType, dataUrl }) => ({ name, mimeType, dataUrl })),
+      });
+    }
+
+    setStatus("Shared to chat.");
   });
 
   // ---------- Init ----------
