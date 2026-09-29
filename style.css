@@ -38,6 +38,18 @@ body {
   font-size: 13px;
 }
 
+.help-link {
+  display: inline-block;
+  margin: 0 0 16px;
+  color: var(--accent);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.help-link:hover {
+  text-decoration: underline;
+}
+
 .workspace {
   display: flex;
   gap: 16px;
