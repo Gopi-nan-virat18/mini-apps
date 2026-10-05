@@ -3,7 +3,7 @@
 
   const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8MB upload cap
   const MAX_CANVAS_DIM = 900;
-  const MAX_ATTACHMENTS = 5;
+  const MAX_ATTACHMENTS = 10;
 
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
@@ -417,11 +417,46 @@
     return "*";
   }
 
-  const MINIAPP_SOURCE = "arattai-custom-miniapp";
+  const MINIAPP_SOURCE = "arattai-share-app";
+  const PROTOCOL_VERSION = 1;
+  const pendingRequests = new Map(); // requestId -> { format }
+
+  const ACK_REASON_MESSAGES = {
+    no_active_chat: "No active chat is open in Arattai.",
+    invalid_payload: "The message payload was invalid.",
+    invalid_format: "Unsupported message format.",
+    invalid_attachment: "One of the attachments was invalid.",
+    too_many_attachments: "Too many attachments were sent.",
+    file_too_large: "An attachment file was too large.",
+  };
 
   function postToHost(payload) {
-    window.parent.postMessage({ source: MINIAPP_SOURCE, type: "send_message", ...payload }, getParentOrigin());
+    const requestId = crypto.randomUUID();
+    pendingRequests.set(requestId, { format: payload.format });
+    window.parent.postMessage(
+      { source: MINIAPP_SOURCE, version: PROTOCOL_VERSION, type: "send_message", requestId, ...payload },
+      getParentOrigin()
+    );
+    return requestId;
   }
+
+  window.addEventListener("message", (event) => {
+    const expectedOrigin = getParentOrigin();
+    if (expectedOrigin !== "*" && event.origin !== expectedOrigin) return;
+    const data = event.data;
+    if (!data || data.source !== "arattai-host" || data.type !== "send_message_result") return;
+
+    const pending = pendingRequests.get(data.requestId);
+    if (!pending) return;
+    pendingRequests.delete(data.requestId);
+
+    const label = pending.format === "text" ? "Message" : "Attachment";
+    if (data.status === "ok") {
+      setStatus(`${label} delivered to chat.`);
+    } else {
+      setStatus(`${label} failed: ${ACK_REASON_MESSAGES[data.reason] || data.reason || "unknown error"}`, true);
+    }
+  });
 
   document.getElementById("shareBtn").addEventListener("click", () => {
     const text = document.getElementById("messageText").value.trim();
@@ -435,20 +470,20 @@
     }
 
     if (text) {
-      postToHost({ format: "text", message: text });
+      postToHost({ format: "text", text });
     }
 
     if (attachments.length === 1) {
       const { name, mimeType, dataUrl } = attachments[0];
-      postToHost({ format: "attachment", message: { name, mimeType, dataUrl } });
+      postToHost({ format: "attachment", attachments: { name, mimeType, dataUrl } });
     } else if (attachments.length > 1) {
       postToHost({
         format: "attachment",
-        message: attachments.map(({ name, mimeType, dataUrl }) => ({ name, mimeType, dataUrl })),
+        attachments: attachments.map(({ name, mimeType, dataUrl }) => ({ name, mimeType, dataUrl })),
       });
     }
 
-    setStatus("Shared to chat.");
+    setStatus("Sent. Waiting for confirmation…");
   });
 
   // ---------- Init ----------
