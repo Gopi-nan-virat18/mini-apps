@@ -419,44 +419,31 @@
 
   const MINIAPP_SOURCE = "arattai-share-app";
   const PROTOCOL_VERSION = 1;
-  const pendingRequests = new Map(); // requestId -> { format }
 
-  const ACK_REASON_MESSAGES = {
-    no_active_chat: "No active chat is open in Arattai.",
-    invalid_payload: "The message payload was invalid.",
-    invalid_format: "Unsupported message format.",
-    invalid_attachment: "One of the attachments was invalid.",
-    too_many_attachments: "Too many attachments were sent.",
-    file_too_large: "An attachment file was too large.",
-  };
+  function normalizeAttachmentPayload({ name, mimeType, dataUrl }) {
+    const payload = { name, mime_type: mimeType };
 
-  function postToHost(payload) {
-    const requestId = crypto.randomUUID();
-    pendingRequests.set(requestId, { format: payload.format });
-    window.parent.postMessage(
-      { source: MINIAPP_SOURCE, version: PROTOCOL_VERSION, type: "send_message", requestId, ...payload },
-      getParentOrigin()
-    );
-    return requestId;
+    if (typeof dataUrl === "string") {
+      if (dataUrl.startsWith("data:")) {
+        const commaIndex = dataUrl.indexOf(",");
+        if (commaIndex !== -1) {
+          payload.data = dataUrl.slice(commaIndex + 1);
+        } else {
+          payload.data = dataUrl;
+        }
+      } else if (/^https?:\/\//i.test(dataUrl)) {
+        payload.url = dataUrl;
+      } else {
+        payload.data = dataUrl;
+      }
+    }
+
+    return payload;
   }
 
-  window.addEventListener("message", (event) => {
-    const expectedOrigin = getParentOrigin();
-    if (expectedOrigin !== "*" && event.origin !== expectedOrigin) return;
-    const data = event.data;
-    if (!data || data.source !== "arattai-host" || data.type !== "send_message_result") return;
-
-    const pending = pendingRequests.get(data.requestId);
-    if (!pending) return;
-    pendingRequests.delete(data.requestId);
-
-    const label = pending.format === "text" ? "Message" : "Attachment";
-    if (data.status === "ok") {
-      setStatus(`${label} delivered to chat.`);
-    } else {
-      setStatus(`${label} failed: ${ACK_REASON_MESSAGES[data.reason] || data.reason || "unknown error"}`, true);
-    }
-  });
+  function postToHost(payload) {
+    window.parent.postMessage({ source: MINIAPP_SOURCE, version: PROTOCOL_VERSION, type: "message", ...payload }, getParentOrigin());
+  }
 
   document.getElementById("shareBtn").addEventListener("click", () => {
     const text = document.getElementById("messageText").value.trim();
@@ -473,17 +460,12 @@
       postToHost({ format: "text", text });
     }
 
-    if (attachments.length === 1) {
-      const { name, mimeType, dataUrl } = attachments[0];
-      postToHost({ format: "attachment", attachments: { name, mimeType, dataUrl } });
-    } else if (attachments.length > 1) {
-      postToHost({
-        format: "attachment",
-        attachments: attachments.map(({ name, mimeType, dataUrl }) => ({ name, mimeType, dataUrl })),
-      });
+    if (attachments.length > 0) {
+      const payloadAttachments = attachments.slice(0, MAX_ATTACHMENTS).map(normalizeAttachmentPayload);
+      postToHost({ format: "attachment", attachments: payloadAttachments });
     }
 
-    setStatus("Sent. Waiting for confirmation…");
+    setStatus("Shared to chat.");
   });
 
   // ---------- Init ----------
