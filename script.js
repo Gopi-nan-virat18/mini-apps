@@ -379,7 +379,13 @@
       return;
     }
     const dataUrl = canvas.toDataURL("image/png");
-    attachments.push({ id: crypto.randomUUID(), name: `creation-${attachments.length + 1}.png`, mimeType: "image/png", dataUrl });
+    attachments.push({
+      id: crypto.randomUUID(),
+      name: `creation-${attachments.length + 1}.png`,
+      mimeType: "image/png",
+      dataUrl,
+      caption: "",
+    });
     renderAttachments();
     setStatus("Added current image to attachments.");
   });
@@ -420,8 +426,16 @@
   const MINIAPP_SOURCE = "arattai-share-app";
   const PROTOCOL_VERSION = 1;
 
-  function normalizeAttachmentPayload({ name, mimeType, dataUrl }) {
+  function normalizeAttachmentPayload({ name, mimeType, dataUrl, caption }) {
+    if (!mimeType || typeof mimeType !== "string") {
+      throw new Error("Attachment mime_type is required.");
+    }
+
     const payload = { name, mime_type: mimeType };
+
+    if (typeof caption === "string" && caption.trim()) {
+      payload.caption = caption.trim();
+    }
 
     if (typeof dataUrl === "string") {
       if (dataUrl.startsWith("data:")) {
@@ -436,6 +450,10 @@
       } else {
         payload.data = dataUrl;
       }
+    }
+
+    if (!payload.data && !payload.url) {
+      throw new Error("Attachment must include either a base64 data payload or an https URL.");
     }
 
     return payload;
@@ -461,7 +479,12 @@
     }
 
     if (attachments.length > 0) {
-      const payloadAttachments = attachments.slice(0, MAX_ATTACHMENTS).map(normalizeAttachmentPayload);
+      const payloadAttachments = attachments.slice(0, MAX_ATTACHMENTS).map((attachment) => normalizeAttachmentPayload({
+        name: attachment.name,
+        mimeType: attachment.mimeType,
+        dataUrl: attachment.dataUrl,
+        caption: attachment.caption,
+      }));
       postToHost({ format: "attachment", attachments: payloadAttachments });
     }
 
