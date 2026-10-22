@@ -352,6 +352,9 @@
   function renderAttachments() {
     attachmentsTray.innerHTML = "";
     attachments.forEach((att) => {
+      const item = document.createElement("div");
+      item.className = "attachment-item";
+
       const thumb = document.createElement("div");
       thumb.className = "attachment-thumb";
       const img = document.createElement("img");
@@ -367,7 +370,18 @@
         renderAttachments();
       });
       thumb.append(img, removeBtn);
-      attachmentsTray.appendChild(thumb);
+
+      const captionInput = document.createElement("textarea");
+      captionInput.className = "attachment-caption";
+      captionInput.rows = 2;
+      captionInput.placeholder = "Caption";
+      captionInput.value = att.caption || "";
+      captionInput.addEventListener("input", (event) => {
+        att.caption = event.target.value;
+      });
+
+      item.append(thumb, captionInput);
+      attachmentsTray.appendChild(item);
     });
     attachCount.textContent = String(attachments.length);
     document.getElementById("addAttachmentBtn").disabled = attachments.length >= MAX_ATTACHMENTS;

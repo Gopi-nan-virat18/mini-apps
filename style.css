@@ -255,6 +255,14 @@ canvas {
   gap: 8px;
   flex-wrap: wrap;
   min-height: 60px;
+  align-items: flex-start;
+}
+
+.attachment-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 92px;
 }
 
 .attachment-thumb {
@@ -286,6 +294,19 @@ canvas {
   font-size: 11px;
   line-height: 1;
   cursor: pointer;
+}
+
+.attachment-caption {
+  width: 100%;
+  min-height: 42px;
+  resize: vertical;
+  background: var(--panel-light);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-family: inherit;
+  font-size: 11px;
 }
 
 .share-actions {
