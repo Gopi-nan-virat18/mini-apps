@@ -115,7 +115,18 @@
           <div class="share-actions">
             <button id="downloadBtn" type="button" class="btn">Download Image</button>
             <button id="shareBtn" type="button" class="btn btn-primary">Share to Chat</button>
+            <button id="inviteBtn" type="button" class="btn">Send Invite</button>
           </div>
+
+          <div class="invite-section">
+            <label>Invite URL
+              <input id="inviteUrl" type="url" placeholder="https://example.com/join" />
+            </label>
+            <label>Invite title
+              <input id="inviteTitle" type="text" maxlength="100" placeholder="Join my Chess match" />
+            </label>
+          </div>
+
           <p id="statusMsg" class="status" role="status"></p>
         </div>
       </section>

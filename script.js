@@ -477,6 +477,34 @@
     window.parent.postMessage({ source: MINIAPP_SOURCE, version: PROTOCOL_VERSION, type: "message", ...payload }, getParentOrigin());
   }
 
+  function postInviteToHost() {
+    const inviteUrlEl = document.getElementById("inviteUrl");
+    const inviteTitleEl = document.getElementById("inviteTitle");
+    const url = (inviteUrlEl.value || "").trim();
+    const title = (inviteTitleEl.value || "").trim();
+
+    if (!/^https:\/\//i.test(url)) {
+      setStatus("Invite URL must be a valid https URL.", true);
+      return;
+    }
+
+    if (window.parent === window) {
+      setStatus("Not running inside a host app; nothing to share to.", true);
+      return;
+    }
+
+    const payload = {
+      source: MINIAPP_SOURCE,
+      version: PROTOCOL_VERSION,
+      type: "invite",
+      url,
+      ...(title ? { title: title.slice(0, 100) } : {}),
+    };
+
+    window.parent.postMessage(payload, getParentOrigin());
+    setStatus("Invite sent.");
+  }
+
   document.getElementById("shareBtn").addEventListener("click", () => {
     const text = document.getElementById("messageText").value.trim();
     if (!text && attachments.length === 0) {
@@ -504,6 +532,8 @@
 
     setStatus("Shared to chat.");
   });
+
+  document.getElementById("inviteBtn").addEventListener("click", postInviteToHost);
 
   // ---------- Init ----------
 
