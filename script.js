@@ -109,7 +109,10 @@
       setStatus("Not running inside Arattai; nothing to share to.", true);
       return;
     }
-    window.parent.postMessage({ source: SOURCE, version: VERSION, editable: false, ...payload }, location.origin);
+    const hostOrigin =
+      (location.ancestorOrigins && location.ancestorOrigins[0]) ||
+      (document.referrer ? new URL(document.referrer).origin : "*");
+    window.parent.postMessage({ source: SOURCE, version: VERSION, editable: false, ...payload }, hostOrigin);
     setStatus("Choose a chat in the dialog to send.");
   }
 
