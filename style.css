@@ -39,6 +39,11 @@ body {
   font-size: 22px;
 }
 
+.greeting {
+  margin: 0 0 4px;
+  font-size: 15px;
+}
+
 .subtitle {
   margin: 0 0 12px;
   color: var(--text-dim);

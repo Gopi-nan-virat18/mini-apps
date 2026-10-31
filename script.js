@@ -19,7 +19,7 @@
   const shareBtn = document.getElementById("shareBtn");
   const challengeBtn = document.getElementById("challengeBtn");
   const statusMsg = document.getElementById("statusMsg");
-  const subtitleEl = document.querySelector(".subtitle");
+  const greetingEl = document.getElementById("greeting");
   const attachImage = document.getElementById("attachImage");
 
   let score = 0;
@@ -72,7 +72,6 @@
     timeEl.textContent = timeLeft;
     overlay.hidden = true;
     shareBtn.disabled = true;
-    challengeBtn.disabled = true;
     spawnTarget();
     timerId = setInterval(() => {
       timeLeft -= 1;
@@ -94,7 +93,6 @@
     startBtn.textContent = "Play Again";
     overlay.hidden = false;
     shareBtn.disabled = false;
-    challengeBtn.disabled = false;
   }
 
   startBtn.addEventListener("click", startGame);
@@ -136,7 +134,8 @@
     if (data.type !== "context" || data.error) return;
     if (data.user && typeof data.user.name === "string") {
       playerName = data.user.name;
-      subtitleEl.textContent = `Hi ${playerName}! Tap as many targets as you can in 30 seconds`;
+      greetingEl.textContent = `Hello ${playerName}`;
+      greetingEl.hidden = false;
     }
     if (data.chat) chatInfo = data.chat;
   });
@@ -192,11 +191,10 @@
   });
 
   challengeBtn.addEventListener("click", async () => {
-    if (lastScore === null) return;
     const card = {
       type: "card",
       url: location.origin + location.pathname,
-      title: `Beat my ${lastScore} in ${APP_NAME}!`,
+      title: lastScore === null ? `Play ${APP_NAME} with me!` : `Beat my ${lastScore} in ${APP_NAME}!`,
       description: "Tap targets for 30 seconds. Think you can score higher?",
       cta: "Play now",
     };
