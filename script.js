@@ -158,7 +158,10 @@
         (blob) =>
           new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = () => resolve({ data: String(reader.result).split(",")[1], mime: blob.type || "image/jpeg" });
+            reader.onload = () => {
+              const dataUrl = String(reader.result);
+              resolve({ data: dataUrl.split(",")[1], mime: blob.type || "image/jpeg", dataUrl });
+            };
             reader.onerror = reject;
             reader.readAsDataURL(blob);
           })
@@ -188,21 +191,20 @@
     postToHost({ type: "message", format: "text", title: `${APP_NAME} score`, text });
   });
 
-  // Cards can't carry an image, so the challenge goes as an image attachment with the link in the caption.
   challengeBtn.addEventListener("click", async () => {
     if (lastScore === null) return;
-    const url = location.origin + location.pathname;
-    const title = `Beat my ${lastScore} in ${APP_NAME}!`;
+    const card = {
+      type: "card",
+      url: location.origin + location.pathname,
+      title: `Beat my ${lastScore} in ${APP_NAME}!`,
+      description: "Tap targets for 30 seconds. Think you can score higher?",
+      cta: "Play now",
+    };
     try {
-      const img = await loadShareImage(CHALLENGE_IMAGE);
-      postToHost({
-        type: "message",
-        format: "attachment",
-        title: `${APP_NAME} challenge`,
-        attachments: [{ name: CHALLENGE_IMAGE, mime_type: img.mime, data: img.data, caption: `${title}\n${url}` }],
-      });
+      card.image = (await loadShareImage(CHALLENGE_IMAGE)).dataUrl;
     } catch (e) {
-      postToHost({ type: "card", url, title });
+      // Send the card without a thumbnail.
     }
+    postToHost(card);
   });
 })();
