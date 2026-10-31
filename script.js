@@ -6,6 +6,8 @@
   const VERSION = 1;
   const APP_NAME = "Tap Rush";
   const BEST_KEY = "tap-rush-best";
+  const SHARE_IMAGE = "celebration.jpg";
+  const CHALLENGE_IMAGE = "Challenge.jpg";
 
   const arena = document.getElementById("arena");
   const overlay = document.getElementById("overlay");
@@ -17,6 +19,8 @@
   const shareBtn = document.getElementById("shareBtn");
   const challengeBtn = document.getElementById("challengeBtn");
   const statusMsg = document.getElementById("statusMsg");
+  const subtitleEl = document.querySelector(".subtitle");
+  const attachImage = document.getElementById("attachImage");
 
   let score = 0;
   let timeLeft = GAME_SECONDS;
@@ -103,35 +107,102 @@
     statusTimer = setTimeout(() => (statusMsg.textContent = ""), 4000);
   }
 
+  function getHostOrigin() {
+    if (location.ancestorOrigins && location.ancestorOrigins.length) return location.ancestorOrigins[0];
+    try {
+      return new URL(document.referrer).origin;
+    } catch (e) {
+      return "*";
+    }
+  }
+
   // editable:false makes the host show a read-only send dialog.
   function postToHost(payload) {
     if (window.parent === window) {
       setStatus("Not running inside Arattai; nothing to share to.", true);
       return;
     }
-    const hostOrigin =
-      (location.ancestorOrigins && location.ancestorOrigins[0]) ||
-      (document.referrer ? new URL(document.referrer).origin : "*");
-    window.parent.postMessage({ source: SOURCE, version: VERSION, editable: false, ...payload }, hostOrigin);
+    window.parent.postMessage({ source: SOURCE, version: VERSION, editable: false, ...payload }, getHostOrigin());
     setStatus("Choose a chat in the dialog to send.");
   }
 
-  shareBtn.addEventListener("click", () => {
-    if (lastScore === null) return;
-    postToHost({
-      type: "message",
-      format: "text",
-      title: `${APP_NAME} score`,
-      text: `I scored ${lastScore} in ${APP_NAME}! Personal best: ${best}. Can you beat me?`,
-    });
+  // Trusted apps only; others get error:"not_allowed" and the game works without context.
+  let playerName = "";
+  let chatInfo = null;
+
+  window.addEventListener("message", (event) => {
+    const data = event.data;
+    if (event.source !== window.parent || !data || data.source !== "arattai-host" || data.version !== 1) return;
+    if (data.type !== "context" || data.error) return;
+    if (data.user && typeof data.user.name === "string") {
+      playerName = data.user.name;
+      subtitleEl.textContent = `Hi ${playerName}! Tap as many targets as you can in 30 seconds`;
+    }
+    if (data.chat) chatInfo = data.chat;
   });
 
-  challengeBtn.addEventListener("click", () => {
+  if (window.parent !== window) {
+    window.parent.postMessage(
+      { source: SOURCE, version: VERSION, type: "get_context", scope: ["user", "chat"], request_id: "init" },
+      getHostOrigin()
+    );
+  }
+
+  function loadShareImage(path) {
+    return fetch(path)
+      .then((res) => {
+        if (!res.ok) throw new Error("image not found");
+        return res.blob();
+      })
+      .then(
+        (blob) =>
+          new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve({ data: String(reader.result).split(",")[1], mime: blob.type || "image/jpeg" });
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          })
+      );
+  }
+
+  shareBtn.addEventListener("click", async () => {
     if (lastScore === null) return;
-    postToHost({
-      type: "card",
-      url: location.origin + location.pathname,
-      title: `Beat my ${lastScore} in ${APP_NAME}!`,
-    });
+    const who = playerName ? `${playerName} scored` : "I scored";
+    const text = `${who} ${lastScore} in ${APP_NAME}! Personal best: ${best}. Can you beat me?`;
+
+    if (attachImage.checked) {
+      try {
+        const img = await loadShareImage(SHARE_IMAGE);
+        postToHost({
+          type: "message",
+          format: "attachment",
+          title: `${APP_NAME} score`,
+          attachments: [{ name: SHARE_IMAGE, mime_type: img.mime, data: img.data, caption: text }],
+        });
+        return;
+      } catch (e) {
+        setStatus("Image unavailable; sending as text.", true);
+      }
+    }
+
+    postToHost({ type: "message", format: "text", title: `${APP_NAME} score`, text });
+  });
+
+  // Cards can't carry an image, so the challenge goes as an image attachment with the link in the caption.
+  challengeBtn.addEventListener("click", async () => {
+    if (lastScore === null) return;
+    const url = location.origin + location.pathname;
+    const title = `Beat my ${lastScore} in ${APP_NAME}!`;
+    try {
+      const img = await loadShareImage(CHALLENGE_IMAGE);
+      postToHost({
+        type: "message",
+        format: "attachment",
+        title: `${APP_NAME} challenge`,
+        attachments: [{ name: CHALLENGE_IMAGE, mime_type: img.mime, data: img.data, caption: `${title}\n${url}` }],
+      });
+    } catch (e) {
+      postToHost({ type: "card", url, title });
+    }
   });
 })();

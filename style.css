@@ -126,6 +126,12 @@ body {
   background: var(--accent-hover);
 }
 
+.checkbox-label {
+  display: block;
+  margin-top: 12px;
+  font-size: 14px;
+}
+
 .share-actions {
   display: flex;
   gap: 8px;
