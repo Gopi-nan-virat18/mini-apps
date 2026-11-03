@@ -6,7 +6,6 @@
   const VERSION = 1;
   const APP_NAME = "Tap Rush";
   const BEST_KEY = "tap-rush-best";
-  const SHARE_IMAGE = "celebration.jpg";
   const CHALLENGE_IMAGE = "Challenge.jpg";
 
   const arena = document.getElementById("arena");
@@ -20,7 +19,9 @@
   const challengeBtn = document.getElementById("challengeBtn");
   const statusMsg = document.getElementById("statusMsg");
   const greetingEl = document.getElementById("greeting");
-  const attachImage = document.getElementById("attachImage");
+  const resultEl = document.getElementById("result");
+  const resultImg = document.getElementById("resultImg");
+  const resultText = document.getElementById("resultText");
 
   let score = 0;
   let timeLeft = GAME_SECONDS;
@@ -71,7 +72,7 @@
     scoreEl.textContent = score;
     timeEl.textContent = timeLeft;
     overlay.hidden = true;
-    shareBtn.disabled = true;
+    resultEl.hidden = true;
     spawnTarget();
     timerId = setInterval(() => {
       timeLeft -= 1;
@@ -92,7 +93,8 @@
     overlayText.textContent = `Time's up!\nScore: ${score}\nBest: ${best}`;
     startBtn.textContent = "Play Again";
     overlay.hidden = false;
-    shareBtn.disabled = false;
+    resultText.textContent = `Your score: ${score}  |  Best: ${best}`;
+    resultEl.hidden = false;
   }
 
   startBtn.addEventListener("click", startGame);
@@ -167,27 +169,32 @@
       );
   }
 
-  shareBtn.addEventListener("click", async () => {
+  // Cards only accept png/jpeg/webp, so the AVIF celebration image is re-encoded as JPEG.
+  function imageToJpegDataUrl(img) {
+    const scale = Math.min(1, 640 / Math.max(img.naturalWidth, img.naturalHeight));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(img.naturalWidth * scale);
+    canvas.height = Math.round(img.naturalHeight * scale);
+    canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/jpeg", 0.8);
+  }
+
+  shareBtn.addEventListener("click", () => {
     if (lastScore === null) return;
     const who = playerName ? `${playerName} scored` : "I scored";
-    const text = `${who} ${lastScore} in ${APP_NAME}! Personal best: ${best}. Can you beat me?`;
-
-    if (attachImage.checked) {
-      try {
-        const img = await loadShareImage(SHARE_IMAGE);
-        postToHost({
-          type: "message",
-          format: "attachment",
-          title: `${APP_NAME} score`,
-          attachments: [{ name: SHARE_IMAGE, mime_type: img.mime, data: img.data, caption: text }],
-        });
-        return;
-      } catch (e) {
-        setStatus("Image unavailable; sending as text.", true);
-      }
+    const card = {
+      type: "card",
+      url: location.origin + location.pathname,
+      title: `${who} ${lastScore} in ${APP_NAME}!`,
+      description: `Personal best: ${best}. Can you beat it?`,
+      cta: "Beat me",
+    };
+    try {
+      if (resultImg.complete && resultImg.naturalWidth) card.image = imageToJpegDataUrl(resultImg);
+    } catch (e) {
+      // Send the card without a thumbnail.
     }
-
-    postToHost({ type: "message", format: "text", title: `${APP_NAME} score`, text });
+    postToHost(card);
   });
 
   challengeBtn.addEventListener("click", async () => {

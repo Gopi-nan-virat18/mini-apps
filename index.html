@@ -27,12 +27,13 @@
       </div>
     </div>
 
-    <label class="checkbox-label">
-      <input id="attachImage" type="checkbox" /> Share score with image
-    </label>
+    <section id="result" class="result" hidden>
+      <img id="resultImg" class="result-img" src="celebration.avif" alt="Celebration" />
+      <p id="resultText" class="result-text"></p>
+      <button id="shareBtn" type="button" class="btn btn-primary">Share Score</button>
+    </section>
 
     <div class="share-actions">
-      <button id="shareBtn" type="button" class="btn btn-primary" disabled>Share Score</button>
       <button id="challengeBtn" type="button" class="btn">Challenge Friends</button>
     </div>
     <p id="statusMsg" class="status" role="status"></p>
